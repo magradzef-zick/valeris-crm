@@ -200,5 +200,41 @@ export type CrmUser = {
   full_name: string;
   role: UserRole;
   status: string;
+  last_login_at: string;
   created_at: string;
+};
+
+export type ProjectSummary = Pick<Project,
+  | 'project_id' | 'name' | 'status' | 'phase' | 'priority'
+  | 'service_line' | 'trade_direction'
+  | 'company_id' | 'lead_id' | 'contact_id'
+  | 'owner_user_id' | 'operations_user_id'
+  | 'start_date' | 'target_end_date' | 'deleted_at'
+>;
+
+export type TaskSummary = Pick<Task,
+  | 'task_id' | 'entity_type' | 'entity_id'
+  | 'title' | 'status' | 'priority'
+  | 'assigned_to' | 'due_date' | 'completed_at'
+  | 'created_by' | 'created_at' | 'deleted_at'
+>;
+
+export type DashboardStats = {
+  leads: {
+    total: number;
+    byStatus: Record<string, number>;
+    newThisMonth: number;
+    highPriority: number;
+  };
+  projects: {
+    total: number;
+    active: number;
+    completed: number;
+  };
+  tasks: {
+    total: number;
+    open: number;
+    dueToday: number;
+    overdue: number;
+  };
 };

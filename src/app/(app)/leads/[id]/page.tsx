@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Mail, Phone, Globe, MessageSquare, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Globe, MessageSquare, Calendar, FolderKanban } from "lucide-react";
 import { requireUser } from "@/server/auth/guards";
 import { getLead, getTimeline } from "@/server/queries/leads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { LeadPriorityBadge } from "@/components/leads/lead-priority-badge";
 import { LeadEditForm } from "@/components/leads/lead-edit-form";
 import { NoteForm } from "@/components/leads/note-form";
 import { Timeline } from "@/components/leads/timeline";
+import { Button } from "@/components/ui/button";
 
 export async function generateMetadata({
   params,
@@ -80,6 +81,12 @@ export default async function LeadDetailPage({
           <div className="flex items-center gap-2 shrink-0">
             <LeadStatusBadge status={lead.status} />
             <LeadPriorityBadge priority={lead.priority} />
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/projects/new?leadId=${lead.lead_id}`}>
+                <FolderKanban className="h-3.5 w-3.5" />
+                Convert to project
+              </Link>
+            </Button>
           </div>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
