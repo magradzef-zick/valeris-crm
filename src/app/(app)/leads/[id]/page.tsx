@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { LeadStatusBadge } from "@/components/leads/lead-status-badge";
 import { LeadPriorityBadge } from "@/components/leads/lead-priority-badge";
 import { LeadEditForm } from "@/components/leads/lead-edit-form";
+import { NoteForm } from "@/components/leads/note-form";
 import { Timeline } from "@/components/leads/timeline";
 
 export async function generateMetadata({
@@ -171,7 +172,7 @@ export default async function LeadDetailPage({
             </Card>
           )}
 
-          {/* Timeline */}
+          {/* Timeline + Note entry */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -179,7 +180,9 @@ export default async function LeadDetailPage({
                 Activity timeline
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-5">
+              <NoteForm entityType="Lead" entityId={lead.lead_id} />
+              {timelineItems.length > 0 && <Separator />}
               <Timeline items={timelineItems} />
             </CardContent>
           </Card>
