@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { SESSION_COOKIE } from '@/lib/constants/cookie';
 import type { SessionUser } from '@/types/crm';
 
-const COOKIE = 'valeris_session';
-
 // Routes that never require authentication
-const PUBLIC_PREFIXES = ['/login', '/api/login', '/_next', '/fonts', '/favicon'];
+const PUBLIC_PREFIXES = [
+  '/login',
+  '/forgot-password',
+  '/api/login',
+  '/api/logout',
+  '/_next',
+  '/fonts',
+  '/favicon',
+];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
@@ -26,7 +33,7 @@ export function proxy(request: NextRequest) {
 
   if (isPublic(pathname)) return NextResponse.next();
 
-  const raw = request.cookies.get(COOKIE)?.value;
+  const raw = request.cookies.get(SESSION_COOKIE)?.value;
   if (!sessionValid(raw)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';

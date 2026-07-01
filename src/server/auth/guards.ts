@@ -1,9 +1,8 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { SESSION_COOKIE } from '@/lib/constants/cookie';
 import type { SessionUser } from '@/types/crm';
-
-const COOKIE = 'valeris_session';
 
 export type { SessionUser as CurrentUser };
 
@@ -14,7 +13,7 @@ export type { SessionUser as CurrentUser };
  */
 export async function requireUser(): Promise<SessionUser> {
   const cookieStore = await cookies();
-  const raw = cookieStore.get(COOKIE)?.value;
+  const raw = cookieStore.get(SESSION_COOKIE)?.value;
 
   if (!raw) redirect('/login');
 

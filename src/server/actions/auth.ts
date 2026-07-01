@@ -2,12 +2,11 @@
 
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { SESSION_COOKIE } from '@/lib/constants/cookie';
 import { loginSchema } from '@/lib/validation/auth';
 import type { SessionUser } from '@/types/crm';
 
 export type AuthActionResult = { error: string } | undefined;
-
-const COOKIE = 'valeris_session';
 
 function safeRedirectPath(path: FormDataEntryValue | null): string {
   if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
@@ -57,7 +56,7 @@ export async function signIn(
   const expiresAt = new Date(session.expiresAt);
 
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE, JSON.stringify(session), {
+  cookieStore.set(SESSION_COOKIE, JSON.stringify(session), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -70,7 +69,7 @@ export async function signIn(
 
 export async function signOut() {
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE, '', {
+  cookieStore.set(SESSION_COOKIE, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

@@ -91,7 +91,7 @@ export type Contact = {
   phone: string;
   linkedin: string;
   language: string;
-  is_primary: boolean;
+  is_primary: boolean; // Sheets checkbox columns return native booleans, not strings
   status: string;
   owner_user_id: string;
   created_at: string;

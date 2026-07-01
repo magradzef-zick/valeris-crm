@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { SESSION_COOKIE } from '@/lib/constants/cookie';
 import type { SessionUser } from '@/types/crm';
-
-const COOKIE = 'valeris_session';
 
 async function getSession(): Promise<SessionUser | null> {
   try {
     const cookieStore = await cookies();
-    const raw = cookieStore.get(COOKIE)?.value;
+    const raw = cookieStore.get(SESSION_COOKIE)?.value;
     if (!raw) return null;
     const session = JSON.parse(raw) as SessionUser;
     if (new Date(session.expiresAt) < new Date()) return null;
