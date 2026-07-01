@@ -171,6 +171,16 @@ export type TimelineItem =
   | (Note & { _kind: 'note' })
   | (Activity & { _kind: 'activity' });
 
+// Lean summary returned by getLeads — excludes heavy fields (message, user_agent,
+// utm_*, notes, etc.) to keep the Next.js SSR payload small.
+export type LeadSummary = Pick<Lead,
+  | 'lead_id' | 'received' | 'status' | 'priority' | 'owner'
+  | 'next_action' | 'next_action_date' | 'updated_at'
+  | 'first_name' | 'last_name' | 'full_name' | 'company_name'
+  | 'email' | 'phone' | 'interest' | 'language'
+  | 'deleted_at' | 'trade_direction'
+>;
+
 export type CrmUser = {
   user_id: string;
   email: string;

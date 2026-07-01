@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Valeris CRM
 
-## Getting Started
+Internal CRM for the Valeris team — managing leads, companies, contacts, and projects for a consultancy specialising in India↔Poland trade facilitation.
 
-First, run the development server:
+## Architecture
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Browser → Next.js (App Router) → /api/crm proxy → Google Apps Script → Google Sheets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The Apps Script is the sole backend. The Next.js frontend never accesses Google Sheets directly. `APPS_SCRIPT_URL` is a server-side environment variable — never `NEXT_PUBLIC_`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Full setup guide: `../docs/crm-setup.md`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development
 
-## Learn More
+```bash
+cp .env.local.example .env.local  # fill in APPS_SCRIPT_URL
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Verification
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+All three must pass with zero errors before committing.
 
-## Deploy on Vercel
+## Milestones
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Milestone | Status | Description |
+|-----------|--------|-------------|
+| M0 | ✓ | Foundation & Auth — login, session, app shell |
+| M1 | ✓ | Leads — list, detail, status updates, timeline |
+| M2 |   | Companies & Contacts |
+| M3 |   | Projects, Tasks, Dashboard |
+| M4 |   | Team management, Settings, Polish |
