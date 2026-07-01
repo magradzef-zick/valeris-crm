@@ -42,10 +42,16 @@ export async function signIn(
         action: 'login',
         data: { email: parsed.data.email, password: parsed.data.password },
       }),
+      signal: AbortSignal.timeout(15_000),
     });
     json = await res.json();
-  } catch {
-    return { error: 'Unable to reach the authentication server. Try again.' };
+  } catch (err) {
+    const isTimeout = err instanceof Error && err.name === 'TimeoutError';
+    return {
+      error: isTimeout
+        ? 'The authentication server took too long. Try again.'
+        : 'Unable to reach the authentication server. Try again.',
+    };
   }
 
   if (!json.ok || !json.data) {
