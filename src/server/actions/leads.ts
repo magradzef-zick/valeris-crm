@@ -42,5 +42,6 @@ export async function updateLeadAction(
 
   revalidatePath('/leads');
   revalidatePath(`/leads/${leadId}`);
+  revalidatePath('/dashboard');
   return { ok: true };
 }

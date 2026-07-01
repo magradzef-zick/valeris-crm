@@ -8,37 +8,16 @@ function getUrl(): string {
 }
 
 /**
- * Server-side GET to Apps Script.
- * Used in Server Components and Server Actions — never call from Client Components.
- * Injects the session credentials as URL params (Apps Script reads e.parameter).
+ * Server-side read from Apps Script via POST.
+ * Session credentials travel in the request body (not URL params) to avoid
+ * session tokens appearing in server access logs and Apps Script execution logs.
  */
 export async function serverGet<T>(
   action: string,
   session: SessionUser,
   params?: Record<string, string>,
 ): Promise<ApiResponse<T>> {
-  let url: string;
-  try {
-    url = getUrl();
-  } catch {
-    return { ok: false, error: 'CRM backend is not configured' };
-  }
-
-  const search = new URLSearchParams({
-    action,
-    userId: session.userId,
-    token: session.token,
-    ...params,
-  });
-
-  try {
-    const res = await fetch(`${url}?${search.toString()}`, {
-      next: { revalidate: 0 },
-    });
-    return (await res.json()) as ApiResponse<T>;
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'Network error' };
-  }
+  return serverPost<T>(action, session, params);
 }
 
 /**

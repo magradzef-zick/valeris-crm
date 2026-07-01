@@ -34,6 +34,15 @@ export async function createProjectAction(
   });
 
   if (!result.ok) return { error: result.error };
+
+  // If this project was created from a lead, invalidate lead views so the
+  // converted status and project link appear immediately.
+  const leadId = formData.get('lead_id') as string;
+  if (leadId) {
+    revalidatePath('/leads');
+    revalidatePath(`/leads/${leadId}`);
+  }
+  revalidatePath('/dashboard');
   redirect(`/projects/${result.data.project_id}`);
 }
 

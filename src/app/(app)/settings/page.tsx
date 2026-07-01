@@ -2,25 +2,14 @@ import type { Metadata } from "next";
 import { requireUser } from "@/server/auth/guards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { LEAD_STATUSES } from "@/lib/constants/leads";
+import { PROJECT_STATUSES, PROJECT_PHASES, SERVICE_LINES } from "@/lib/constants/projects";
+import { TASK_STATUSES } from "@/lib/constants/tasks";
+import { ROLES, SCHEMA_VERSION } from "@/lib/constants/shared";
 
 export const metadata: Metadata = { title: "Settings — Valeris CRM" };
 
-const LEAD_STATUSES  = ["New", "Contacted", "Qualified", "Proposal", "Won", "Lost", "Spam"];
-const PROJECT_STATUSES = ["Active", "On Hold", "Completed", "Cancelled"];
-const PROJECT_PHASES   = ["Discovery", "Proposal", "Execution", "Delivery", "Closed"];
-const TASK_STATUSES    = ["Open", "In Progress", "Done", "Cancelled"];
-const SERVICE_LINES    = [
-  "Supplier Verification",
-  "India Market Entry Consulting",
-  "Representation in India",
-  "Operational Support",
-  "Poland Market Entry (Indian company)",
-  "Pharma — Europe Market Entry",
-  "Other / Not sure yet",
-];
-const ROLES = ["Owner", "Administrator", "Sales", "Operations"];
-
-function ValueList({ values }: { values: string[] }) {
+function ValueList({ values }: { values: readonly string[] }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {values.map((v) => (
@@ -118,7 +107,7 @@ export default async function SettingsPage() {
             </div>
             <div className="flex gap-4">
               <dt className="text-xs text-muted-foreground w-32 shrink-0">Schema version</dt>
-              <dd className="text-xs">2</dd>
+              <dd className="text-xs">{SCHEMA_VERSION}</dd>
             </div>
             <div className="flex gap-4">
               <dt className="text-xs text-muted-foreground w-32 shrink-0">Password reset</dt>

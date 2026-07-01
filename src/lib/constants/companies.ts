@@ -1,3 +1,4 @@
+// Must stay in sync with COMPANY_TYPES in Code.gs
 export const COMPANY_TYPES = [
   'Importer',
   'Exporter',
@@ -10,6 +11,7 @@ export const COMPANY_TYPES = [
 ] as const;
 export type CompanyType = (typeof COMPANY_TYPES)[number];
 
+// Must stay in sync with COMPANY_STATUSES in Code.gs
 export const COMPANY_STATUSES = ['Active', 'Inactive', 'Prospect', 'Partner'] as const;
 export type CompanyStatus = (typeof COMPANY_STATUSES)[number];
 

@@ -77,7 +77,7 @@ export async function createContactAction(
     const val = formData.get(key);
     if (typeof val === 'string') data[key] = val;
   }
-  data.is_primary = formData.get('is_primary') === 'true';
+  data.is_primary = formData.get('is_primary') === 'on';
 
   const result = await serverPost<{ contact_id: string }>('createContact', session, data);
   if (!result.ok) return { error: result.error };

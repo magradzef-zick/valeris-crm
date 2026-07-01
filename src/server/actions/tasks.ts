@@ -60,5 +60,13 @@ export async function updateTaskAction(
 
   revalidatePath('/tasks');
   revalidatePath(`/tasks/${taskId}`);
+
+  // Invalidate the parent entity page so its task list reflects the change.
+  const entityType = formData.get('entity_type') as string;
+  const entityId   = formData.get('entity_id')   as string;
+  if (entityType === 'Project' && entityId) revalidatePath(`/projects/${entityId}`);
+  if (entityType === 'Lead'    && entityId) revalidatePath(`/leads/${entityId}`);
+
+  revalidatePath('/dashboard');
   return { ok: true };
 }
