@@ -13,8 +13,8 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number];
 export const PRIORITIES = ['High', 'Medium', 'Low'] as const;
 export type Priority = (typeof PRIORITIES)[number];
 
-export const TRADE_DIRECTIONS = ['India → Poland', 'Poland → India'] as const;
-export type TradeDirection = (typeof TRADE_DIRECTIONS)[number];
+// Re-exported from shared so existing imports keep working
+export { TRADE_DIRECTIONS, type TradeDirection } from './shared';
 
 // Mirrors SERVICES array in Code.gs
 export const SERVICE_LINES = [
