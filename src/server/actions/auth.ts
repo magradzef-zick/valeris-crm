@@ -1,0 +1,81 @@
+'use server';
+
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { loginSchema } from '@/lib/validation/auth';
+import type { SessionUser } from '@/types/crm';
+
+export type AuthActionResult = { error: string } | undefined;
+
+const COOKIE = 'valeris_session';
+
+function safeRedirectPath(path: FormDataEntryValue | null): string {
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
+    return '/dashboard';
+  }
+  return path;
+}
+
+export async function signIn(
+  _previous: AuthActionResult,
+  formData: FormData,
+): Promise<AuthActionResult> {
+  const parsed = loginSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid input' };
+  }
+
+  const url = process.env.APPS_SCRIPT_URL;
+  if (!url) {
+    return { error: 'Server configuration error. Contact your administrator.' };
+  }
+
+  let json: { ok: boolean; data?: SessionUser; error?: string };
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'login',
+        data: { email: parsed.data.email, password: parsed.data.password },
+      }),
+    });
+    json = await res.json();
+  } catch {
+    return { error: 'Unable to reach the authentication server. Try again.' };
+  }
+
+  if (!json.ok || !json.data) {
+    return { error: json.error ?? 'Incorrect email or password' };
+  }
+
+  const session = json.data;
+  const expiresAt = new Date(session.expiresAt);
+
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE, JSON.stringify(session), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    expires: expiresAt,
+    path: '/',
+  });
+
+  redirect(safeRedirectPath(formData.get('redirect')));
+}
+
+export async function signOut() {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    expires: new Date(0),
+    path: '/',
+  });
+  redirect('/login');
+}
