@@ -1,3 +1,5 @@
+"use client";
+
 import { NAV_ITEMS } from "@/lib/constants/nav";
 import { NavLink } from "@/components/layout/nav-link";
 
