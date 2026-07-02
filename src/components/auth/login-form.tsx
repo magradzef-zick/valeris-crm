@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,12 +14,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(signIn, undefined);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
+
+  // When signIn returns { redirectTo }, the cookie is already in the 200 response.
+  // Navigate client-side so the browser carries that cookie into the next request.
+  useEffect(() => {
+    if (state && "redirectTo" in state) {
+      router.replace(state.redirectTo);
+    }
+  }, [state, router]);
 
   const onSubmit = (data: LoginInput) => {
     const formData = new FormData();
@@ -35,7 +45,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-          {state?.error && (
+          {state && "error" in state && (
             <Alert variant="destructive">
               <AlertDescription>{state.error}</AlertDescription>
             </Alert>

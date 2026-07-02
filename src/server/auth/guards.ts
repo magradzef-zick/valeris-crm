@@ -19,7 +19,8 @@ export async function requireUser(): Promise<SessionUser> {
 
   let session: SessionUser;
   try {
-    session = JSON.parse(raw) as SessionUser;
+    const value = raw.startsWith('%') ? decodeURIComponent(raw) : raw;
+    session = JSON.parse(value) as SessionUser;
   } catch {
     redirect('/login');
   }

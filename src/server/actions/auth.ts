@@ -6,7 +6,11 @@ import { SESSION_COOKIE } from '@/lib/constants/cookie';
 import { loginSchema } from '@/lib/validation/auth';
 import type { SessionUser } from '@/types/crm';
 
-export type AuthActionResult = { error: string } | undefined;
+// `redirectTo` is returned instead of calling redirect() so the cookie is
+// included in the 200 action response. Calling redirect() in a Server Action
+// that also sets a cookie causes Next.js to emit a 303 whose Set-Cookie header
+// is dropped before the browser receives it — the session is then never stored.
+export type AuthActionResult = { error: string } | { redirectTo: string } | undefined;
 
 function safeRedirectPath(path: FormDataEntryValue | null): string {
   if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
@@ -70,7 +74,7 @@ export async function signIn(
     path: '/',
   });
 
-  redirect(safeRedirectPath(formData.get('redirect')));
+  return { redirectTo: safeRedirectPath(formData.get('redirect')) };
 }
 
 export async function signOut() {

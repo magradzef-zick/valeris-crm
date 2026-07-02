@@ -21,7 +21,9 @@ function isPublic(pathname: string): boolean {
 function sessionValid(raw: string | undefined): boolean {
   if (!raw) return false;
   try {
-    const session = JSON.parse(raw) as SessionUser;
+    // Next.js may URL-encode cookie values; decode if needed before parsing.
+    const value = raw.startsWith('%') ? decodeURIComponent(raw) : raw;
+    const session = JSON.parse(value) as SessionUser;
     return !!session.token && new Date(session.expiresAt) > new Date();
   } catch {
     return false;
