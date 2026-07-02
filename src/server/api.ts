@@ -46,9 +46,13 @@ export async function serverPost<T>(
         auth: { userId: session.userId, token: session.token },
         data: data ?? {},
       }),
+      signal: AbortSignal.timeout(20_000),
     });
     return (await res.json()) as ApiResponse<T>;
   } catch (err) {
+    if (err instanceof Error && err.name === 'TimeoutError') {
+      return { ok: false, error: 'Request timed out. Apps Script may be starting up — try again.' };
+    }
     return { ok: false, error: err instanceof Error ? err.message : 'Network error' };
   }
 }

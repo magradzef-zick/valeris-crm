@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireUser } from '@/server/auth/guards';
 import { serverPost } from '@/server/api';
 import type { Project } from '@/types/crm';
@@ -35,10 +35,13 @@ export async function createProjectAction(
 
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('projects', {});
+  revalidateTag('dashboard', {});
   // If this project was created from a lead, invalidate lead views so the
   // converted status and project link appear immediately.
   const leadId = formData.get('lead_id') as string;
   if (leadId) {
+    revalidateTag('leads', {});
     revalidatePath('/leads');
     revalidatePath(`/leads/${leadId}`);
   }
@@ -73,6 +76,8 @@ export async function updateProjectAction(
 
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('projects', {});
+  revalidateTag('dashboard', {});
   revalidatePath('/projects');
   revalidatePath(`/projects/${projectId}`);
   return { ok: true };

@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireUser } from '@/server/auth/guards';
 import { serverPost } from '@/server/api';
 import type { Note } from '@/types/crm';
@@ -28,6 +28,7 @@ export async function createNoteAction(
 
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('timeline', {});
   // Revalidate the entity detail page so the timeline refreshes
   const pathMap: Record<string, string> = {
     Lead:    `/leads/${entityId}`,

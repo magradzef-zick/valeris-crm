@@ -1,14 +1,23 @@
 import type { Metadata } from "next";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { requireUser } from "@/server/auth/guards";
 import { getLeads } from "@/server/queries/leads";
-import { LeadsTable } from "@/components/leads/leads-table";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { QK } from "@/lib/crm-queries";
+import { LeadsClient } from "./leads-client";
 
 export const metadata: Metadata = { title: "Leads — Valeris CRM" };
 
 export default async function LeadsPage() {
   const session = await requireUser();
-  const { leads, error } = await getLeads(session);
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: QK.leads,
+    queryFn: async () => {
+      const { leads } = await getLeads(session);
+      return { leads };
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -19,13 +28,9 @@ export default async function LeadsPage() {
         </p>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <LeadsTable leads={leads} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <LeadsClient />
+      </HydrationBoundary>
     </div>
   );
 }

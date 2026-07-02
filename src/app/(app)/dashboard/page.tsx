@@ -4,6 +4,7 @@ import { Users, FolderKanban, CheckSquare, TrendingUp, AlertTriangle, Clock } fr
 import { requireUser } from "@/server/auth/guards";
 import { getDashboardStats } from "@/server/queries/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Prefetcher } from "@/components/layout/prefetcher";
 
 export const metadata: Metadata = { title: "Dashboard — Valeris CRM" };
 
@@ -46,7 +47,9 @@ function StatCard({
 export default async function DashboardPage() {
   const session = await requireUser();
   const firstName = session.name.split(" ")[0];
+  const tStats = Date.now();
   const { stats } = await getDashboardStats(session);
+  console.log(`[dashboard] getDashboardStats total: ${Date.now() - tStats} ms (cache hit if no MISS log above)`);
 
   const openLeads =
     (stats?.leads.byStatus["New"] ?? 0) +
@@ -56,6 +59,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Prefetcher />
       <div>
         <h1 className="font-heading text-2xl font-medium">Welcome, {firstName}</h1>
         <p className="text-sm text-muted-foreground">

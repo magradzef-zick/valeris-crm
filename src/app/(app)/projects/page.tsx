@@ -1,17 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { requireUser } from "@/server/auth/guards";
 import { getProjects } from "@/server/queries/projects";
-import { ProjectsTable } from "@/components/projects/projects-table";
+import { QK } from "@/lib/crm-queries";
+import { ProjectsClient } from "./projects-client";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Projects — Valeris CRM" };
 
 export default async function ProjectsPage() {
   const session = await requireUser();
-  const { projects, error } = await getProjects(session);
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: QK.projects,
+    queryFn: async () => {
+      const { projects } = await getProjects(session);
+      return { projects };
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -28,13 +37,9 @@ export default async function ProjectsPage() {
         </Button>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <ProjectsTable projects={projects} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ProjectsClient />
+      </HydrationBoundary>
     </div>
   );
 }

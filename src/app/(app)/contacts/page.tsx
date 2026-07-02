@@ -1,17 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { requireUser } from "@/server/auth/guards";
 import { getContacts } from "@/server/queries/companies";
-import { ContactsTable } from "@/components/contacts/contacts-table";
+import { QK } from "@/lib/crm-queries";
+import { ContactsClient } from "./contacts-client";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Contacts — Valeris CRM" };
 
 export default async function ContactsPage() {
   const session = await requireUser();
-  const { contacts, error } = await getContacts(session);
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: QK.contacts,
+    queryFn: async () => {
+      const { contacts } = await getContacts(session);
+      return { contacts };
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -28,13 +37,9 @@ export default async function ContactsPage() {
         </Button>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <ContactsTable contacts={contacts} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ContactsClient />
+      </HydrationBoundary>
     </div>
   );
 }

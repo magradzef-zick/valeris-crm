@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireUser } from '@/server/auth/guards';
 import { serverPost } from '@/server/api';
 import type { Task } from '@/types/crm';
@@ -29,6 +29,9 @@ export async function createTaskAction(
 
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('tasks', {});
+  revalidateTag('dashboard', {});
+  revalidateTag('timeline', {});
   const entityType = formData.get('entity_type') as string;
   const entityId   = formData.get('entity_id') as string;
   if (entityType === 'Project' && entityId) {
@@ -58,6 +61,8 @@ export async function updateTaskAction(
   const result = await serverPost<{ task: Task }>('updateTask', session, { taskId, fields });
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('tasks', {});
+  revalidateTag('dashboard', {});
   revalidatePath('/tasks');
   revalidatePath(`/tasks/${taskId}`);
 

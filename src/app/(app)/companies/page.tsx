@@ -1,17 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { requireUser } from "@/server/auth/guards";
 import { getCompanies } from "@/server/queries/companies";
-import { CompaniesTable } from "@/components/companies/companies-table";
+import { QK } from "@/lib/crm-queries";
+import { CompaniesClient } from "./companies-client";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Companies — Valeris CRM" };
 
 export default async function CompaniesPage() {
   const session = await requireUser();
-  const { companies, error } = await getCompanies(session);
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: QK.companies,
+    queryFn: async () => {
+      const { companies } = await getCompanies(session);
+      return { companies };
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -28,13 +37,9 @@ export default async function CompaniesPage() {
         </Button>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <CompaniesTable companies={companies} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <CompaniesClient />
+      </HydrationBoundary>
     </div>
   );
 }

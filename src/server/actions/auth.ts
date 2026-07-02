@@ -23,6 +23,9 @@ export async function signIn(
   _previous: AuthActionResult,
   formData: FormData,
 ): Promise<AuthActionResult> {
+  const t0 = Date.now();
+  console.log('[signIn] start');
+
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -37,7 +40,8 @@ export async function signIn(
     return { error: 'Server configuration error. Contact your administrator.' };
   }
 
-  let json: { ok: boolean; data?: SessionUser; error?: string };
+  let json: { ok: boolean; data?: SessionUser; error?: string; timing?: Record<string, number> };
+  const tFetch = Date.now();
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -48,14 +52,31 @@ export async function signIn(
       }),
       signal: AbortSignal.timeout(15_000),
     });
+    const tFetchDone = Date.now();
+    console.log(`[signIn] fetch GAS: ${tFetchDone - tFetch} ms`);
+
+    const tParse = Date.now();
     json = await res.json();
+    console.log(`[signIn] response parse: ${Date.now() - tParse} ms`);
+    // If 'timing' is absent here, the deployed Code.gs is the OLD version.
+    // New version returns: ok, data, timing. Old version returns: ok, data.
+    console.log(`[signIn] response keys: ${Object.keys(json).join(', ')}`);
   } catch (err) {
+    console.log(`[signIn] fetch FAILED after ${Date.now() - tFetch} ms`);
     const isTimeout = err instanceof Error && err.name === 'TimeoutError';
     return {
       error: isTimeout
         ? 'The authentication server took too long. Try again.'
         : 'Unable to reach the authentication server. Try again.',
     };
+  }
+
+  if (json.timing) {
+    const t = json.timing;
+    console.log(`[signIn] Apps Script: ${t.gasTotal} ms`);
+    console.log(`[signIn]   sheets read: ${t.sheetsRead} ms`);
+    console.log(`[signIn]   password verify: ${t.passwordVerify} ms`);
+    console.log(`[signIn]   session write: ${t.sessionWrite} ms`);
   }
 
   if (!json.ok || !json.data) {
@@ -65,6 +86,7 @@ export async function signIn(
   const session = json.data;
   const expiresAt = new Date(session.expiresAt);
 
+  const tCookie = Date.now();
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, JSON.stringify(session), {
     httpOnly: true,
@@ -73,8 +95,13 @@ export async function signIn(
     expires: expiresAt,
     path: '/',
   });
+  console.log(`[signIn] cookies.set: ${Date.now() - tCookie} ms`);
 
-  return { redirectTo: safeRedirectPath(formData.get('redirect')) };
+  const tRedirect = Date.now();
+  const result = { redirectTo: safeRedirectPath(formData.get('redirect')) };
+  console.log(`[signIn] redirect prep: ${Date.now() - tRedirect} ms`);
+  console.log(`[signIn] TOTAL: ${Date.now() - t0} ms`);
+  return result;
 }
 
 export async function signOut() {

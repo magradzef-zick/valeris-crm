@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -35,7 +35,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
     formData.set("email", data.email);
     formData.set("password", data.password);
     formData.set("redirect", redirectTo);
-    formAction(formData);
+    startTransition(() => formAction(formData));
   };
 
   return (

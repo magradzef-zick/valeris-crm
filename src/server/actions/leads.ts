@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireUser } from '@/server/auth/guards';
 import { serverPost } from '@/server/api';
 import type { Lead } from '@/types/crm';
@@ -40,6 +40,8 @@ export async function updateLeadAction(
 
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('leads', {});
+  revalidateTag('dashboard', {});
   revalidatePath('/leads');
   revalidatePath(`/leads/${leadId}`);
   revalidatePath('/dashboard');

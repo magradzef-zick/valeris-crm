@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireUser } from '@/server/auth/guards';
 import { serverPost } from '@/server/api';
 import type { Company, Contact } from '@/types/crm';
@@ -30,6 +30,7 @@ export async function createCompanyAction(
   const result = await serverPost<{ company_id: string }>('createCompany', session, data);
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('companies', {});
   redirect(`/companies/${result.data.company_id}`);
 }
 
@@ -54,6 +55,7 @@ export async function updateCompanyAction(
   });
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('companies', {});
   revalidatePath('/companies');
   revalidatePath(`/companies/${companyId}`);
   return { ok: true };
@@ -82,6 +84,7 @@ export async function createContactAction(
   const result = await serverPost<{ contact_id: string }>('createContact', session, data);
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('contacts', {});
   redirect(`/contacts/${result.data.contact_id}`);
 }
 
@@ -107,6 +110,7 @@ export async function updateContactAction(
   });
   if (!result.ok) return { error: result.error };
 
+  revalidateTag('contacts', {});
   revalidatePath('/contacts');
   revalidatePath(`/contacts/${contactId}`);
   return { ok: true };

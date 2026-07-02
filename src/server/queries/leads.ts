@@ -1,34 +1,50 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import { serverGet } from '@/server/api';
 import type { Lead, LeadSummary, SessionUser, TimelineItem } from '@/types/crm';
 
-export async function getLeads(
-  session: SessionUser,
-): Promise<{ leads: LeadSummary[]; error?: string }> {
-  const result = await serverGet<{ leads: LeadSummary[] }>('getLeads', session);
-  if (!result.ok) return { leads: [], error: result.error };
-  return { leads: result.data.leads };
+const _getLeads = unstable_cache(
+  async (session: SessionUser) => {
+    const result = await serverGet<{ leads: LeadSummary[] }>('getLeads', session);
+    if (!result.ok) return { leads: [] as LeadSummary[], error: result.error };
+    return { leads: result.data.leads };
+  },
+  ['leads'],
+  { revalidate: 60, tags: ['leads'] },
+);
+
+const _getLead = unstable_cache(
+  async (session: SessionUser, leadId: string) => {
+    const result = await serverGet<{ lead: Lead }>('getLead', session, { leadId });
+    if (!result.ok) return { lead: null as Lead | null, error: result.error };
+    return { lead: result.data.lead };
+  },
+  ['lead'],
+  { revalidate: 30, tags: ['leads'] },
+);
+
+const _getTimeline = unstable_cache(
+  async (session: SessionUser, entityType: string, entityId: string) => {
+    const result = await serverGet<{ items: TimelineItem[] }>(
+      'getTimeline',
+      session,
+      { entityType, entityId },
+    );
+    if (!result.ok) return { items: [] as TimelineItem[], error: result.error };
+    return { items: result.data.items };
+  },
+  ['timeline'],
+  { revalidate: 30, tags: ['timeline'] },
+);
+
+export function getLeads(session: SessionUser) {
+  return _getLeads(session);
 }
 
-export async function getLead(
-  session: SessionUser,
-  leadId: string,
-): Promise<{ lead: Lead | null; error?: string }> {
-  const result = await serverGet<{ lead: Lead }>('getLead', session, { leadId });
-  if (!result.ok) return { lead: null, error: result.error };
-  return { lead: result.data.lead };
+export function getLead(session: SessionUser, leadId: string) {
+  return _getLead(session, leadId);
 }
 
-export async function getTimeline(
-  session: SessionUser,
-  entityType: string,
-  entityId: string,
-): Promise<{ items: TimelineItem[]; error?: string }> {
-  const result = await serverGet<{ items: TimelineItem[] }>(
-    'getTimeline',
-    session,
-    { entityType, entityId },
-  );
-  if (!result.ok) return { items: [], error: result.error };
-  return { items: result.data.items };
+export function getTimeline(session: SessionUser, entityType: string, entityId: string) {
+  return _getTimeline(session, entityType, entityId);
 }

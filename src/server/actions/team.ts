@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireUser } from '@/server/auth/guards';
 import { isOwnerOrAdmin } from '@/server/auth/permissions';
@@ -30,6 +30,7 @@ export async function createUserAction(
   });
 
   if (!result.ok) return { error: result.error };
+  revalidateTag('users', {});
   revalidatePath('/team');
   redirect('/team');
 }
@@ -53,6 +54,7 @@ export async function updateUserAction(
   const result = await serverPost('updateUser', session, { userId, fields });
   if (!result.ok) return { error: (result as { ok: false; error: string }).error };
 
+  revalidateTag('users', {});
   revalidatePath('/team');
   return { ok: true };
 }

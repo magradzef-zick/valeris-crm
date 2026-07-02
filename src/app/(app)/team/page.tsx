@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { requireUser } from "@/server/auth/guards";
 import { isOwnerOrAdmin } from "@/server/auth/permissions";
 import { getUsers } from "@/server/queries/team";
-import { TeamTable } from "@/components/team/team-table";
+import { QK } from "@/lib/crm-queries";
+import { TeamClient } from "./team-client";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Team — Valeris CRM" };
 
 export default async function TeamPage() {
   const session = await requireUser();
-  const { users, error } = await getUsers(session);
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: QK.users,
+    queryFn: async () => {
+      const { users } = await getUsers(session);
+      return { users };
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -31,13 +40,9 @@ export default async function TeamPage() {
         )}
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <TeamTable users={users} currentRole={session.role} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <TeamClient currentRole={session.role} />
+      </HydrationBoundary>
     </div>
   );
 }
